@@ -1,0 +1,60 @@
+services:
+  visionx-notifications-db:
+    image: postgres:17-alpine
+    container_name: visionx-notifications-postgres
+    restart: unless-stopped
+    env_file:
+      - path: /opt/visionx/secrets/.env.notifications
+        required: false
+      - path: ./.env
+        required: false
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-visionx_notifications}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    ports:
+      - "5435:5432"
+    volumes:
+      - notifications_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d visionx_notifications"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  visionx-notifications-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: visionx-notifications-service
+    restart: unless-stopped
+    ports:
+      - "8010:8080"
+    depends_on:
+      visionx-notifications-db:
+        condition: service_healthy
+    env_file:
+      - path: /opt/visionx/secrets/.env.notifications
+        required: false
+      - path: ./.env
+        required: false
+    environment:
+      ASPNETCORE_URLS: http://+:8080
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+      ConnectionStrings__NotificationsDatabase: Host=visionx-notifications-db;Port=5432;Database=${POSTGRES_DB:-visionx_notifications};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}
+      Jwt__Issuer: ${JWT_ISSUER:-visionx-auth-service}
+      Jwt__Audience: ${JWT_AUDIENCE:-visionx-app}
+      Jwt__JwksUrl: ${JWT_JWKS_URL:-https://auth.visionx.io/.well-known/jwks.json}
+      Jwt__PublicKeyPath: ${JWT_PUBLIC_KEY_PATH:-/run/secrets/jwt_public.pem}
+      Jwt__PublicKeyPem: ${JWT_PUBLIC_KEY_PEM:-}
+      Firebase__ProjectId: ${FIREBASE_PROJECT_ID:-visionx-notifications}
+      Firebase__CredentialsPath: ${FIREBASE_CREDENTIALS_PATH:-/etc/firebase/service-account.json}
+      Firebase__CredentialsJson: ${FIREBASE_CREDENTIALS_JSON:-}
+      Webhook__Secret: ${SESSION_WEBHOOK_SECRET:-VisionX_SessionEvent_SharedSecret_2026}
+      VisionXBackend__BaseUrl: ${VISIONX_BACKEND_URL:-https://api.visionx.io}
+    volumes:
+      - ./credentials:/etc/firebase:ro
+      - ${JWT_SECRETS_DIR:-/opt/visionx/secrets}:/run/secrets:ro
+
+volumes:
+  notifications_pgdata:

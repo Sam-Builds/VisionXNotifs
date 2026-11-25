@@ -1,0 +1,27 @@
+# General
+.DS_Store
+*.log
+
+# Secrets and environment files
+**/.env
+**/.env.*
+**/.env.example
+
+# Docker local data
+**/postgres-data/
+**/docker-compose.override.yml
+
+# Build artifacts
+**/bin/
+**/obj/
+**/publish/
+
+# IDE
+.vscode/
+.idea/
+
+
+/VisionX.Auth.Tests/
+*.md/
+
+.gitignore/
