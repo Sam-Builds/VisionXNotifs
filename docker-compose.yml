@@ -4,7 +4,7 @@ services:
     container_name: visionx-notifications-postgres
     restart: unless-stopped
     env_file:
-      - path: /opt/visionx/secrets/.env.notifications
+      - path: /opt/VisionX/secrets/.env.notifications
         required: false
       - path: ./.env
         required: false
@@ -34,7 +34,7 @@ services:
       visionx-notifications-db:
         condition: service_healthy
     env_file:
-      - path: /opt/visionx/secrets/.env.notifications
+      - path: /opt/VisionX/secrets/.env.notifications
         required: false
       - path: ./.env
         required: false
@@ -54,7 +54,7 @@ services:
       VisionXBackend__BaseUrl: ${VISIONX_BACKEND_URL:-https://api.visionx.io}
     volumes:
       - ./credentials:/etc/firebase:ro
-      - ${JWT_SECRETS_DIR:-/opt/visionx/secrets}:/run/secrets:ro
+      - ${JWT_SECRETS_DIR:-/opt/VisionX/secrets}:/run/secrets:ro
 
 volumes:
   notifications_pgdata:
