@@ -126,11 +126,14 @@ public class FirebasePushNotificationProvider : IPushNotificationProvider
 
         try
         {
+            var nowUtc = message.CreatedAtUtc ?? DateTime.UtcNow;
             var dataPayload = new Dictionary<string, string>
             {
                 ["title"] = message.Title,
                 ["body"] = message.Body,
-                ["priority"] = message.Priority
+                ["priority"] = message.Priority,
+                ["createdAt"] = nowUtc.ToString("o"),
+                ["timestamp"] = nowUtc.ToString("o")
             };
 
             if (!string.IsNullOrEmpty(message.NotificationId))

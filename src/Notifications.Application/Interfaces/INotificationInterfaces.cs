@@ -16,6 +16,7 @@ public class PushMessage
     public Dictionary<string, string>? CustomData { get; set; }
     public string? NotificationId { get; set; }
     public string? CategoryCode { get; set; }
+    public DateTime? CreatedAtUtc { get; set; }
 }
 
 public class PushSendResult

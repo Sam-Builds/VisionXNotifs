@@ -124,6 +124,42 @@ public static class RouteRegistry
             DisplayName = "Notification Settings",
             TargetScreen = "/settings/notifications",
             Description = "Manage notification category preferences"
+        },
+        ["alerts.inbox"] = new()
+        {
+            RouteKey = "alerts.inbox",
+            DisplayName = "Alerts & Notifications Inbox",
+            TargetScreen = "/notifications",
+            Description = "Notification inbox and detection alerts history"
+        },
+        ["devices.list"] = new()
+        {
+            RouteKey = "devices.list",
+            DisplayName = "Connected Devices",
+            TargetScreen = "/devices",
+            Description = "VisionX cameras and connected edge hardware"
+        },
+        ["camera.capture"] = new()
+        {
+            RouteKey = "camera.capture",
+            DisplayName = "Camera Stream & Capture",
+            TargetScreen = "/capture",
+            Description = "Live camera view and capture inspection"
+        },
+        ["settings.profile"] = new()
+        {
+            RouteKey = "settings.profile",
+            DisplayName = "Profile & Settings",
+            TargetScreen = "/more",
+            Description = "User profile and system settings"
+        },
+        ["alert.details"] = new()
+        {
+            RouteKey = "alert.details",
+            DisplayName = "Alert Details",
+            TargetScreen = "/notifications/details",
+            RequiredParameters = new() { "notificationId" },
+            Description = "Detailed detection alert and frame snapshot"
         }
     };
 

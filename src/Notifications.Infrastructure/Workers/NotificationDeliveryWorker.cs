@@ -145,7 +145,8 @@ public class NotificationDeliveryWorker : BackgroundService
                 RouteKey = delivery.Notification.RouteKey,
                 RouteParameters = routeParams,
                 NotificationId = delivery.Notification.Id.ToString(),
-                CategoryCode = delivery.Notification.CategoryCode
+                CategoryCode = delivery.Notification.CategoryCode,
+                CreatedAtUtc = delivery.Notification.CreatedAt
             };
 
             delivery.AttemptCount++;

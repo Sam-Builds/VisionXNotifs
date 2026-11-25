@@ -178,6 +178,28 @@ public class NotificationsDbContext : DbContext
         {
             new()
             {
+                Code = "alerts",
+                Name = "Detection Alerts",
+                Description = "Security, computer vision detection events, and camera alerts",
+                IconIdentifier = "warning_amber_rounded",
+                IsActive = true,
+                IsUserConfigurable = true,
+                DefaultEnabled = true,
+                DisplayOrder = 1
+            },
+            new()
+            {
+                Code = "devices",
+                Name = "Device & Camera Status",
+                Description = "Camera connection status, offline warnings, and stream health",
+                IconIdentifier = "videocam_outlined",
+                IsActive = true,
+                IsUserConfigurable = true,
+                DefaultEnabled = true,
+                DisplayOrder = 2
+            },
+            new()
+            {
                 Code = "academic",
                 Name = "Academic Notices",
                 Description = "Exam notifications, curriculum notices, and departmental circulars",

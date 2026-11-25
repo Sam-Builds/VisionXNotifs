@@ -260,7 +260,8 @@ public class CampaignService : ICampaignService
                 RouteParameters = request.RouteParameters,
                 CustomData = request.ExtraData,
                 NotificationId = notification.Id.ToString(),
-                CategoryCode = request.CategoryCode
+                CategoryCode = request.CategoryCode,
+                CreatedAtUtc = notification.CreatedAt
             };
 
             var sendResult = await _pushProvider.SendPushAsync(pushMsg);
