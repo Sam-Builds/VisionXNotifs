@@ -1,5 +1,6 @@
 using System.Reflection;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
@@ -16,7 +17,7 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("NotificationsDatabase")
     ?? "Host=localhost;Port=5435;Database=visionx_notifications;Username=postgres;Password=postgres";
 
-var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "visionx-auth-service";
+var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "https://visionx.samstack.site/auth";
 var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "visionx-app";
 
 // Database Context
@@ -48,15 +49,27 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
     .Configure<JwksKeyProvider>((options, jwksProvider) =>
     {
-        var validIssuers = new[] { "visionx-auth-service", "https://auth.visionx.io", jwtIssuer }
-            .Where(s => !string.IsNullOrWhiteSpace(s))
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToArray();
+        var validIssuers = new[]
+        {
+            "https://visionx.samstack.site/auth",
+            "https://visionx.samstack.site",
+            "visionx-auth-service",
+            "https://auth.visionx.io",
+            jwtIssuer
+        }
+        .Where(s => !string.IsNullOrWhiteSpace(s))
+        .Distinct(StringComparer.OrdinalIgnoreCase)
+        .ToArray();
 
-        var validAudiences = new[] { "visionx-app", "VisionX_Ecosystem", jwtAudience }
-            .Where(s => !string.IsNullOrWhiteSpace(s))
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToArray();
+        var validAudiences = new[]
+        {
+            "visionx-app",
+            "VisionX_Ecosystem",
+            jwtAudience
+        }
+        .Where(s => !string.IsNullOrWhiteSpace(s))
+        .Distinct(StringComparer.OrdinalIgnoreCase)
+        .ToArray();
 
         options.MapInboundClaims = false;
         options.TokenValidationParameters = new TokenValidationParameters
@@ -170,20 +183,54 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-app.UseCors();
-
-if (app.Environment.IsDevelopment() || true)
+var forwardedHeadersOptions = new ForwardedHeadersOptions
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "VisionX Notifications API v1");
-        c.RoutePrefix = "swagger";
-    });
-}
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost
+};
+forwardedHeadersOptions.KnownIPNetworks.Clear();
+forwardedHeadersOptions.KnownProxies.Clear();
+app.UseForwardedHeaders(forwardedHeadersOptions);
 
+// Handle Cloudflare Tunnel path routing (e.g. visionx.samstack.site/notifs)
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments("/notifs", out var remainingPath))
+    {
+        context.Request.PathBase = "/notifs";
+        context.Request.Path = remainingPath.HasValue && !string.IsNullOrEmpty(remainingPath.Value) ? remainingPath : "/";
+    }
+    await next();
+});
+
+app.UseSwagger(c =>
+{
+    c.PreSerializeFilters.Add((swaggerDoc, httpReq) =>
+    {
+        var host = httpReq.Headers["X-Forwarded-Host"].FirstOrDefault() ?? httpReq.Host.Value;
+        var scheme = httpReq.Headers["X-Forwarded-Proto"].FirstOrDefault() ?? httpReq.Scheme;
+        var pathBase = httpReq.PathBase.Value ?? "";
+        swaggerDoc.Servers = new List<OpenApiServer>
+        {
+            new() { Url = $"{scheme}://{host}{pathBase}" }
+        };
+    });
+});
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("v1/swagger.json", "VisionX Notifications API v1");
+    c.RoutePrefix = "swagger";
+});
+
+app.UseRouting();
+app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapGet("/", (HttpContext context) =>
+{
+    var target = context.Request.PathBase.HasValue ? $"{context.Request.PathBase}/swagger" : "/swagger";
+    return Results.Redirect(target);
+});
 
 app.MapControllers();
 
