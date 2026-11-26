@@ -191,13 +191,23 @@ forwardedHeadersOptions.KnownIPNetworks.Clear();
 forwardedHeadersOptions.KnownProxies.Clear();
 app.UseForwardedHeaders(forwardedHeadersOptions);
 
-// Handle Cloudflare Tunnel path routing (e.g. visionx.samstack.site/notifs)
+// Handle Cloudflare Tunnel path routing (e.g. visionx.samstack.site/notifs, /notif, /notifications)
 app.Use(async (context, next) =>
 {
-    if (context.Request.Path.StartsWithSegments("/notifs", out var remainingPath))
+    if (context.Request.Path.StartsWithSegments("/notifs", out var remainingNotifs))
     {
         context.Request.PathBase = "/notifs";
-        context.Request.Path = remainingPath.HasValue && !string.IsNullOrEmpty(remainingPath.Value) ? remainingPath : "/";
+        context.Request.Path = remainingNotifs.HasValue && !string.IsNullOrEmpty(remainingNotifs.Value) ? remainingNotifs : "/";
+    }
+    else if (context.Request.Path.StartsWithSegments("/notif", out var remainingNotif))
+    {
+        context.Request.PathBase = "/notif";
+        context.Request.Path = remainingNotif.HasValue && !string.IsNullOrEmpty(remainingNotif.Value) ? remainingNotif : "/";
+    }
+    else if (context.Request.Path.StartsWithSegments("/notifications", out var remainingNotifications))
+    {
+        context.Request.PathBase = "/notifications";
+        context.Request.Path = remainingNotifications.HasValue && !string.IsNullOrEmpty(remainingNotifications.Value) ? remainingNotifications : "/";
     }
     await next();
 });

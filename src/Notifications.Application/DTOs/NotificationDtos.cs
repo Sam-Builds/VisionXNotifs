@@ -17,6 +17,7 @@ public class DeviceDto
 {
     public Guid Id { get; set; }
     public string InstallationId { get; set; } = "";
+    public string FcmToken { get; set; } = "";
     public string UserId { get; set; } = "";
     public string Platform { get; set; } = "";
     public string? DeviceName { get; set; }

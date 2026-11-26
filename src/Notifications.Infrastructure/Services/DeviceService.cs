@@ -164,6 +164,7 @@ public class DeviceService : IDeviceService
         {
             Id = device.Id,
             InstallationId = device.InstallationId,
+            FcmToken = device.FcmToken,
             UserId = device.UserId,
             Platform = device.Platform.ToString(),
             DeviceName = device.DeviceName,
